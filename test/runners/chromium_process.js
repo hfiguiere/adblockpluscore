@@ -35,6 +35,8 @@ function runScript(chromiumPath, script, scriptName, scriptArgs)
 {
   const options = new chrome.Options()
         .headless()
+        // disabling sandboxing. It is needed on some systems.
+        .addArguments("--no-sandbox")
         .setChromeBinaryPath(chromiumPath);
 
   const driver = new Builder()
