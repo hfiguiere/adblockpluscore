@@ -16,7 +16,7 @@ before_script:
   - npm install
 
 script:
-  - npm test
+  - BROWSER_TEST_RUNNERS=chromium,firefox npm test
 
 notifications:
   email: false
