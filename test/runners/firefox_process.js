@@ -24,7 +24,7 @@ require("geckodriver");
 const {executeScript} = require("./webdriver");
 const {ensureFirefox} = require("./firefox_download");
 
-const FIREFOX_VERSION = "56.0";
+const FIREFOX_VERSION = "57.0";
 
 function runScript(firefoxPath, script, scriptName, scriptArgs)
 {
