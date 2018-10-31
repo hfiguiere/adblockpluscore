@@ -72,16 +72,24 @@ class DownloadableSubscription_Parser : public ref_counted
 {
   std::vector<OwnedString> mFiltersText;
   OwnedStringMap<OwnedString> mParams;
-  bool mFirstLine;
 public:
   DownloadableSubscription_Parser();
-  void BINDINGS_EXPORTED Process(const String& line);
+  bool BINDINGS_EXPORTED Process(const String& buffer);
   // return the expiration interval.
   int64_t BINDINGS_EXPORTED Finalize(DownloadableSubscription&);
   const String& BINDINGS_EXPORTED GetRedirect() const;
   const String& BINDINGS_EXPORTED GetHomepage() const;
+  const String& BINDINGS_EXPORTED GetError() const
+  {
+    return mError;
+  }
 private:
+  DependentString mError;
+  OwnedString mRequiredVersion;
   static int64_t ParseExpires(const String& expires);
+  bool ProcessFirstLine(const String& line);
+  void ProcessLine(const String& line);
+  static bool GetNextLine(DependentString& buffer, DependentString& line);
 };
 
 ABP_NS_END

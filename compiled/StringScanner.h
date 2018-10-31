@@ -17,7 +17,10 @@
 
 #pragma once
 
+#include <cwctype>
+
 #include "base.h"
+
 #include "String.h"
 
 ABP_NS_BEGIN
@@ -55,6 +58,36 @@ public:
     String::value_type result = done() ? mTerminator : mStr[mPos];
     mPos++;
     return result;
+  }
+
+  bool skipWhiteSpace()
+  {
+    bool skipped = false;
+    while (!done() && std::iswspace(mStr[mPos]))
+    {
+      skipped = true;
+      mPos++;
+    }
+
+    return skipped;
+  }
+
+  bool skipString(const String& str)
+  {
+    bool skipped = false;
+
+    if (str.length() > mStr.length() - mPos)
+      return false;
+
+    if (std::memcmp(str.data(),
+                    mStr.data() + mPos,
+                    sizeof(String::value_type) * str.length()) == 0)
+    {
+      mPos += str.length();
+      skipped = true;
+    }
+
+    return skipped;
   }
 
   bool skipOne(String::value_type ch)

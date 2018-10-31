@@ -87,27 +87,102 @@ namespace {
 }
 
 DownloadableSubscription_Parser::DownloadableSubscription_Parser()
-  : mFirstLine(true)
 {
   annotate_address(this, "DownloadableSubscription_Parser");
 }
 
 namespace {
   const DependentString ADBLOCK_HEADER(u"[Adblock"_str);
+  const DependentString ADBLOCK_PLUS_EXTRA_HEADER(u"Plus"_str);
+
+  const DependentString ERROR_INVALID_DATA(u"synchronize_invalid_data"_str);
 }
 
-void DownloadableSubscription_Parser::Process(const String& line)
+/// Return true if more line expected.
+bool DownloadableSubscription_Parser::GetNextLine(DependentString& buffer, DependentString& line)
 {
-  bool isHeader = false;
-  isHeader = line.find(ADBLOCK_HEADER) != String::npos;
-  if (!isHeader)
+  StringScanner scanner(buffer);
+  String::value_type ch = 0;
+  while (ch != u'\r' && ch != u'\n')
   {
-    auto param = ParseParam(line);
-    if (param.first.is_invalid())
-      mFiltersText.emplace_back(line);
-    else
-      mParams[param.first] = param.second;
+    ch = scanner.next();
+    if (ch == 0)
+      break;
   }
+
+  auto eol = scanner.position();
+  line.reset(buffer, 0, eol);
+  if (eol == 0 || ch == 0)
+    return false;
+  while (scanner.skipOne(u'\r') || scanner.skipOne(u'\n'))
+    ;
+  buffer.reset(buffer, scanner.position() + 1);
+  return true;
+}
+
+bool DownloadableSubscription_Parser::Process(const String& buffer)
+{
+  DependentString currentBuffer(buffer);
+  bool firstLine = true;
+
+  DependentString line;
+  while (true)
+  {
+    bool more = GetNextLine(currentBuffer, line);
+    if (firstLine)
+    {
+      if (!ProcessFirstLine(line))
+      {
+        mError = ERROR_INVALID_DATA;
+        return false;
+      }
+      firstLine = false;
+    }
+    else
+      ProcessLine(line);
+    if (!more)
+      break;
+  }
+  return true;
+}
+
+bool DownloadableSubscription_Parser::ProcessFirstLine(const String& line)
+{
+  auto index = line.find(ADBLOCK_HEADER);
+  if (index == String::npos)
+    return false;
+
+  DependentString minVersion;
+  DependentString current(line, index + ADBLOCK_HEADER.length());
+  StringScanner scanner(current);
+  if (scanner.skipWhiteSpace() && scanner.skipString(ADBLOCK_PLUS_EXTRA_HEADER))
+    scanner.skipWhiteSpace();
+  index = scanner.position() + 1;
+  String::value_type ch = u'\0';
+  while((ch = scanner.next()) && (ch == u'.' || std::iswdigit(ch)))
+    ;
+  if (ch)
+    scanner.back();
+  if (scanner.position() + 1 > index)
+    minVersion.reset(current, index, scanner.position() + 1 - index);
+
+  if (ch != u']')
+    return false;
+
+  mRequiredVersion = minVersion;
+  return true;
+}
+
+void DownloadableSubscription_Parser::ProcessLine(const String& line)
+{
+  auto param = ParseParam(line);
+  if (param.first.is_invalid())
+  {
+    if (!line.empty())
+      mFiltersText.emplace_back(line);
+  }
+  else
+    mParams[param.first] = param.second;
 }
 
 int64_t DownloadableSubscription_Parser::ParseExpires(const String& expires)
@@ -165,6 +240,13 @@ int64_t DownloadableSubscription_Parser::ParseExpires(const String& expires)
 
 int64_t DownloadableSubscription_Parser::Finalize(DownloadableSubscription& subscription)
 {
+  FilterNotifier::SubscriptionChange(
+    FilterNotifier::Topic::SUBSCRIPTION_BEFORE_FILTERS_REPLACED,
+    subscription);
+
+  if (!mRequiredVersion.empty())
+    subscription.SetRequiredVersion(mRequiredVersion);
+
   auto entry = mParams.find(u"title"_str);
   if (entry)
   {
@@ -184,10 +266,6 @@ int64_t DownloadableSubscription_Parser::Finalize(DownloadableSubscription& subs
   entry = mParams.find(u"expires"_str);
   if (entry)
     expires = ParseExpires(entry->second);
-
-  FilterNotifier::SubscriptionChange(
-    FilterNotifier::Topic::SUBSCRIPTION_BEFORE_FILTERS_REPLACED,
-    subscription);
 
   Subscription::Filters filters;
   filters.reserve(mFiltersText.size());

@@ -141,6 +141,7 @@ int main()
     class_<DownloadableSubscription_Parser>("DownloadableSubscription_Parser")
         .property("redirect", &DownloadableSubscription_Parser::GetRedirect)
         .property("homepage", &DownloadableSubscription_Parser::GetHomepage)
+        .property("error",  &DownloadableSubscription_Parser::GetError)
         .function("process", &DownloadableSubscription_Parser::Process)
         .function("finalize", &DownloadableSubscription_Parser::Finalize);
 
