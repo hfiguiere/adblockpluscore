@@ -29,7 +29,8 @@ class ElemHideException: public ElemHideBase
 {
 public:
   static constexpr Type classType = Type::ELEMHIDEEXCEPTION;
-  explicit ElemHideException(const String& text, const ElemHideData& data);
+  explicit ElemHideException(const String& text, const ElemHideData& data,
+    const ParsedDomains& parsedDomains);
 };
 
 typedef intrusive_ptr<ElemHideException> ElemHideExceptionPtr;

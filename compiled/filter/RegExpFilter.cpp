@@ -363,7 +363,7 @@ RegExpFilter::DomainMap* RegExpFilter::GetDomains() const
 {
   if (!mData.DomainsParsingDone())
   {
-    ParseDomains(mData.GetDomainsSource(mText), ABP_TEXT('|'));
+    ParseDomains(mData.GetDomainsSource(mText), ABP_TEXT('|'), true);
     mData.SetDomainsParsingDone();
   }
   return ActiveFilter::GetDomains();

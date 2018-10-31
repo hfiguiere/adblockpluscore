@@ -20,7 +20,7 @@
 ABP_NS_USING
 
 ElemHideException::ElemHideException(const String& text,
-    const ElemHideData& data)
-    : ElemHideBase(classType, text, data)
+    const ElemHideData& data, const ParsedDomains& parsedDomains)
+    : ElemHideBase(classType, text, data, parsedDomains)
 {
 }

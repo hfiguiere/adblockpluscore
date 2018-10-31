@@ -107,11 +107,12 @@ Filter* Filter::FromText(DependentString& text)
     ElemHideData elemhide;
   } data;
   bool needConversion = false;
+  ParsedDomains parsedDomains;
   DependentString error;
 
   Filter::Type type = CommentFilter::Parse(text);
   if (type == Filter::Type::UNKNOWN)
-    type = ElemHideBase::Parse(text, data.elemhide, needConversion);
+    type = ElemHideBase::Parse(text, error, data.elemhide, needConversion, parsedDomains);
   if (type == Filter::Type::UNKNOWN)
     type = RegExpFilter::Parse(text, error, data.regexp);
 
@@ -145,13 +146,14 @@ Filter* Filter::FromText(DependentString& text)
       filter = FilterPtr(new WhitelistFilter(text, data.regexp), false);
       break;
     case ElemHideFilter::classType:
-      filter = FilterPtr(new ElemHideFilter(text, data.elemhide), false);
+      filter = FilterPtr(new ElemHideFilter(text, data.elemhide,
+        parsedDomains), false);
       break;
     case ElemHideException::classType:
-      filter = FilterPtr(new ElemHideException(text, data.elemhide), false);
+      filter = FilterPtr(new ElemHideException(text, data.elemhide, parsedDomains), false);
       break;
     case ElemHideEmulationFilter::classType:
-      filter = FilterPtr(new ElemHideEmulationFilter(text, data.elemhide), false);
+      filter = FilterPtr(new ElemHideEmulationFilter(text, data.elemhide, parsedDomains), false);
       if (static_cast<ElemHideEmulationFilter*>(filter.get())->IsGeneric())
         filter = FilterPtr(new InvalidFilter(text, ABP_TEXT("filter_elemhideemulation_nodomain"_str)), false);
       break;

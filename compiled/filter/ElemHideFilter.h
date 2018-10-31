@@ -29,7 +29,8 @@ class ElemHideFilter: public ElemHideBase
 {
 public:
   static constexpr Type classType = Type::ELEMHIDE;
-  explicit ElemHideFilter(const String& text, const ElemHideData& data);
+  explicit ElemHideFilter(const String& text, const ElemHideData& data,
+      const ParsedDomains& parsedDomains);
 };
 
 typedef intrusive_ptr<ElemHideFilter> ElemHideFilterPtr;

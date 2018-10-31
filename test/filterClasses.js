@@ -471,3 +471,18 @@ exports.testNotifications = function(test)
   filter.delete();
   test.done();
 };
+
+exports.testEmptyElemHideDomains = function(test)
+{
+  [",##selector", ",,,##selector", "~,foo.com##selector", "foo.com,##selector",
+   ",foo.com##selector", "foo.com,~##selector",
+   "foo.com,,bar.com##selector", "foo.com,~,bar.com##selector"]
+    .map(filterText => Filter.fromText(filterText))
+    .forEach(withNAD(0, filter =>
+    {
+      test.ok(filter instanceof InvalidFilter);
+      test.equal(filter.reason, "filter_invalid_domain");
+    }));
+
+  test.done();
+};

@@ -19,7 +19,8 @@
 
 ABP_NS_USING
 
-ElemHideFilter::ElemHideFilter(const String& text, const ElemHideData& data)
-    : ElemHideBase(classType, text, data)
+ElemHideFilter::ElemHideFilter(const String& text, const ElemHideData& data,
+  const ParsedDomains& parsedDomains)
+  : ElemHideBase(classType, text, data, parsedDomains)
 {
 }

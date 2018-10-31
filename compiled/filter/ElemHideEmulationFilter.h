@@ -30,7 +30,7 @@ class ElemHideEmulationFilter : public ElemHideBase
 public:
   static constexpr Type classType = Type::ELEMHIDEEMULATION;
   explicit ElemHideEmulationFilter(const String& text,
-      const ElemHideData& data);
+      const ElemHideData& data, const ParsedDomains& parsedDomains);
 };
 
 typedef intrusive_ptr<ElemHideEmulationFilter> ElemHideEmulationFilterPtr;

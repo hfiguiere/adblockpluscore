@@ -40,21 +40,20 @@ ActiveFilter::SitekeySet* ActiveFilter::GetSitekeys() const
   return mSitekeys.get();
 }
 
-void ActiveFilter::ParseDomains(const String& domains,
-    String::value_type separator) const
+ParsedDomains ActiveFilter::ParseDomainsInternal(const String& domains,
+    String::value_type separator, bool ignoreTrailingDot)
 {
   DomainMap::size_type count = 2;
   for (String::size_type i = 0; i < domains.length(); i++)
     if (domains[i] == separator)
       count++;
 
-  mDomains.reset(new DomainMap(count));
-  annotate_address(mDomains.get(), "DomainMap");
-
   StringScanner scanner(domains, 0, separator);
   String::size_type start = 0;
   bool reverse = false;
-  bool hasIncludes = false;
+  ParsedDomains parsed;
+  parsed.hasIncludes = false;
+  parsed.domains.reserve(count);
   bool done = scanner.done();
   while (!done)
   {
@@ -68,24 +67,49 @@ void ActiveFilter::ParseDomains(const String& domains,
     else if (currChar == separator)
     {
       String::size_type len = scanner.position() - start;
-      if (len > 0 && mIgnoreTrailingDot && domains[start + len - 1] == ABP_TEXT('.'))
+      if (len > 0 && ignoreTrailingDot && domains[start + len - 1] == ABP_TEXT('.'))
         len--;
       if (len > 0)
       {
-        enter_context("Adding to ActiveFilter.mDomains");
-        (*mDomains)[DependentString(domains, start, len)] = !reverse;
+        enter_context("Adding to ParsedDomains");
+        parsed.domains.push_back(
+          ParsedDomains::Domain({start, len, reverse}));
         exit_context();
 
         if (!reverse)
-          hasIncludes = true;
+          parsed.hasIncludes = true;
       }
+      else
+        parsed.hasEmpty = true;
       start = scanner.position() + 1;
       reverse = false;
     }
   }
-  enter_context("Adding to ActiveFilter.mDomains");
-  (*mDomains)[DEFAULT_DOMAIN] = !hasIncludes;
+  return parsed;
+}
+
+void ActiveFilter::FillDomains(const String& domains, const ParsedDomains& parsed) const
+{
+  mDomains.reset(new DomainMap(parsed.domains.size()));
+  annotate_address(mDomains.get(), "DomainMap");
+
+  for (auto d : parsed.domains)
+  {
+    enter_context("Adding to DomainMap");
+    (*mDomains)[DependentString(domains, d.pos, d.len)] = !d.reverse;
+    exit_context();
+  }
+  enter_context("Adding to DomainMap");
+  (*mDomains)[DEFAULT_DOMAIN] = !parsed.hasIncludes;
   exit_context();
+}
+
+void ActiveFilter::ParseDomains(const String& domains,
+    String::value_type separator, bool ignoreTrailingDot) const
+{
+  ParsedDomains parsed = ParseDomainsInternal(domains,
+    separator, ignoreTrailingDot);
+  FillDomains(domains, parsed);
 }
 
 void ActiveFilter::AddSitekey(const String& sitekey) const

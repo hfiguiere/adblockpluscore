@@ -20,7 +20,7 @@
 ABP_NS_USING
 
 ElemHideEmulationFilter::ElemHideEmulationFilter(const String& text,
-    const ElemHideData& data)
-    : ElemHideBase(classType, text, data)
+    const ElemHideData& data, const ParsedDomains& parsedDomains)
+    : ElemHideBase(classType, text, data, parsedDomains)
 {
 }

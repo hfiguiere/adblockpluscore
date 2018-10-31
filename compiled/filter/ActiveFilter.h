@@ -43,7 +43,25 @@
         }\
       }
 
+
 ABP_NS_BEGIN
+
+struct ParsedDomains
+{
+  struct Domain {
+    String::size_type pos;
+    String::size_type len;
+    bool reverse;
+  };
+  bool hasIncludes;
+  bool hasEmpty;
+  std::vector<Domain> domains;
+
+  ParsedDomains()
+    : hasIncludes(false), hasEmpty(false)
+  {
+  }
+};
 
 class ActiveFilter : public Filter
 {
@@ -53,7 +71,11 @@ public:
   static const DependentString DEFAULT_DOMAIN;
 protected:
   typedef StringSet SitekeySet;
-  void ParseDomains(const String& domains, String::value_type separator) const;
+  static ParsedDomains ParseDomainsInternal(const String& domains,
+      String::value_type separator, bool ignoreTrailingDot);
+  void FillDomains(const String& domains, const ParsedDomains& parsed) const;
+  void ParseDomains(const String& domains,
+      String::value_type separator, bool ignoreTrailingDot) const;
   void AddSitekey(const String& sitekey) const;
   virtual SitekeySet* GetSitekeys() const;
   mutable std::unique_ptr<DomainMap> mDomains;

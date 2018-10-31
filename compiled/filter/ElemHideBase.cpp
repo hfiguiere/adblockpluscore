@@ -66,14 +66,16 @@ namespace
   static constexpr String::size_type PROPS_SELECTOR_LEN = str_length_of(PROPS_SELECTOR);
 }
 
-ElemHideBase::ElemHideBase(Type type, const String& text, const ElemHideData& data)
+ElemHideBase::ElemHideBase(Type type, const String& text, const ElemHideData& data, const ParsedDomains& parsedDomains)
     : ActiveFilter(type, text, false), mData(data)
 {
   if (mData.HasDomains())
-    ParseDomains(mData.GetDomainsSource(mText), ABP_TEXT(','));
+    FillDomains(mData.GetDomainsSource(mText), parsedDomains);
 }
 
-Filter::Type ElemHideBase::Parse(DependentString& text, ElemHideData& data, bool& needConversion)
+Filter::Type ElemHideBase::Parse(DependentString& text, DependentString& error,
+                                 ElemHideData& data, bool& needConversion,
+                                 ParsedDomains& parsedDomains)
 {
   needConversion = false;
 
@@ -131,6 +133,13 @@ Filter::Type ElemHideBase::Parse(DependentString& text, ElemHideData& data, bool
     NormalizeWhitespace(text, data.mDomainsEnd, data.mSelectorStart);
   DependentString(text, 0, data.mDomainsEnd).toLower();
 
+  parsedDomains =
+    ParseDomainsInternal(data.GetDomainsSource(text), ABP_TEXT(','), false);
+  if (parsedDomains.hasEmpty)
+  {
+    error = ABP_TEXT("filter_invalid_domain"_str);
+    return Type::INVALID;
+  }
   // We still need to check the old syntax. It will be converted when
   // we instantiate the filter.
   if (!emulation &&
