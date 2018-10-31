@@ -18,12 +18,18 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
 #include "../base.h"
-#include "Subscription.h"
 #include "../bindings/runtime.h"
+#include "../filter/Filter.h"
+#include "../StringMap.h"
+#include "Subscription.h"
 
 ABP_NS_BEGIN
+
+class String;
+class DownloadableSubscription_Parser;
 
 class DownloadableSubscription : public Subscription
 {
@@ -56,9 +62,26 @@ public:
   SUBSCRIPTION_PROPERTY(int, mDownloadCount, NONE,
       GetDownloadCount, SetDownloadCount);
 
+  static DownloadableSubscription_Parser* BINDINGS_EXPORTED ParseDownload();
   OwnedString BINDINGS_EXPORTED Serialize() const;
 };
 
 typedef intrusive_ptr<DownloadableSubscription> DownloadableSubscriptionPtr;
+
+class DownloadableSubscription_Parser : public ref_counted
+{
+  std::vector<OwnedString> mFiltersText;
+  OwnedStringMap<OwnedString> mParams;
+  bool mFirstLine;
+public:
+  DownloadableSubscription_Parser();
+  void BINDINGS_EXPORTED Process(const String& line);
+  // return the expiration interval.
+  int64_t BINDINGS_EXPORTED Finalize(DownloadableSubscription&);
+  const String& BINDINGS_EXPORTED GetRedirect() const;
+  const String& BINDINGS_EXPORTED GetHomepage() const;
+private:
+  static int64_t ParseExpires(const String& expires);
+};
 
 ABP_NS_END

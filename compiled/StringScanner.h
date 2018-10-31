@@ -44,6 +44,12 @@ public:
     return mPos - 1;
   }
 
+  void back()
+  {
+    if (mPos > 0)
+      mPos--;
+  }
+
   String::value_type next()
   {
     String::value_type result = done() ? mTerminator : mStr[mPos];

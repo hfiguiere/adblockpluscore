@@ -48,6 +48,7 @@ public:
   bool BINDINGS_EXPORTED RemoveSubscription(Subscription& subscription);
   bool BINDINGS_EXPORTED MoveSubscription(Subscription& subscription,
       const Subscription* insertBefore);
+  void BINDINGS_EXPORTED ClearSubscriptionFilters(Subscription& subscription);
 };
 
 ABP_NS_END

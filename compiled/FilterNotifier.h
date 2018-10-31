@@ -44,6 +44,8 @@ namespace FilterNotifier
     SUBSCRIPTION_TITLE,
     SUBSCRIPTION_DISABLED,
     SUBSCRIPTION_FIXEDTITLE,
+    SUBSCRIPTION_BEFORE_FILTERS_REPLACED,
+    SUBSCRIPTION_FILTERS_REPLACED,
     SUBSCRIPTION_HOMEPAGE,
     SUBSCRIPTION_LASTCHECK,
     SUBSCRIPTION_LASTDOWNLOAD,
@@ -82,6 +84,8 @@ namespace FilterNotifier
       printfTopic("  [%i, 'subscription.title'],\n", Topic::SUBSCRIPTION_TITLE);
       printfTopic("  [%i, 'subscription.disabled'],\n", Topic::SUBSCRIPTION_DISABLED);
       printfTopic("  [%i, 'subscription.fixedTitle'],\n", Topic::SUBSCRIPTION_FIXEDTITLE);
+      printfTopic("  [%i, 'subscription.beforefiltersreplaced'],\n", Topic::SUBSCRIPTION_BEFORE_FILTERS_REPLACED);
+      printfTopic("  [%i, 'subscription.filtersreplaced'],\n", Topic::SUBSCRIPTION_FILTERS_REPLACED);
       printfTopic("  [%i, 'subscription.homepage'],\n", Topic::SUBSCRIPTION_HOMEPAGE);
       printfTopic("  [%i, 'subscription.lastCheck'],\n", Topic::SUBSCRIPTION_LASTCHECK);
       printfTopic("  [%i, 'subscription.lastDownload'],\n", Topic::SUBSCRIPTION_LASTDOWNLOAD);

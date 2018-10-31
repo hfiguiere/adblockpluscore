@@ -135,7 +135,14 @@ int main()
         .property("dataRevision", &DownloadableSubscription::GetDataRevision, &DownloadableSubscription::SetDataRevision)
         .property("requiredVersion", &DownloadableSubscription::GetRequiredVersion, &DownloadableSubscription::SetRequiredVersion)
         .property("downloadCount", &DownloadableSubscription::GetDownloadCount, &DownloadableSubscription::SetDownloadCount)
+        .class_function("parseDownload", &DownloadableSubscription::ParseDownload)
         .function("serialize", &DownloadableSubscription::Serialize);
+
+    class_<DownloadableSubscription_Parser>("DownloadableSubscription_Parser")
+        .property("redirect", &DownloadableSubscription_Parser::GetRedirect)
+        .property("homepage", &DownloadableSubscription_Parser::GetHomepage)
+        .function("process", &DownloadableSubscription_Parser::Process)
+        .function("finalize", &DownloadableSubscription_Parser::Finalize);
 
     singleton<FilterStorage>("FilterStorage", &FilterStorage::GetInstance)
         .property("subscriptionCount", &FilterStorage::GetSubscriptionCount)
@@ -144,7 +151,8 @@ int main()
         .function("getSubscriptionForFilter", &FilterStorage::GetSubscriptionForFilter)
         .function("addSubscription", &FilterStorage::AddSubscription)
         .function("removeSubscription", &FilterStorage::RemoveSubscription)
-        .function("moveSubscription", &FilterStorage::MoveSubscription);
+        .function("moveSubscription", &FilterStorage::MoveSubscription)
+        .function("clearSubscriptionFilters", &FilterStorage::ClearSubscriptionFilters);
 
     class_<ElemHide_SelectorList>("ElemHide_SelectorList")
         .property("selectorCount", &ElemHide_SelectorList::GetSelectorCount)

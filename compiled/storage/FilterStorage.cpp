@@ -110,6 +110,16 @@ bool FilterStorage::RemoveSubscription(Subscription& subscription)
   return true;
 }
 
+void FilterStorage::ClearSubscriptionFilters(Subscription& subscription)
+{
+  subscription.ClearFilters();
+
+  FilterNotifier::SubscriptionChange(
+    FilterNotifier::Topic::SUBSCRIPTION_FILTERS_REPLACED,
+    subscription
+    );
+}
+
 bool FilterStorage::MoveSubscription(Subscription& subscription,
                                      const Subscription* insertBefore)
 {

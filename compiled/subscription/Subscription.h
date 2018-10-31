@@ -84,6 +84,16 @@ public:
     return mID;
   }
 
+  void SetFilters(Filters&& filters)
+  {
+    mFilters = filters;
+  }
+
+  void ClearFilters()
+  {
+    mFilters.clear();
+  }
+
   SUBSCRIPTION_STRING_PROPERTY(mTitle, SUBSCRIPTION_TITLE, GetTitle, SetTitle);
   SUBSCRIPTION_PROPERTY(bool, mDisabled, SUBSCRIPTION_DISABLED,
         GetDisabled, SetDisabled);
