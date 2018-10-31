@@ -168,22 +168,6 @@ exports.testElemHideAPI = function(test)
   test.done();
 };
 
-exports.testSyntaxConversion = function(test)
-{
-  function checkConvertedFilter(old, converted)
-  {
-    withNAD(
-      0, filter => test.equal(filter.text, converted))(Filter.fromText(old));
-  }
-
-  checkConvertedFilter("example.com##foo[-abp-properties='something']bar", "example.com#?#foo:-abp-properties(something)bar");
-  checkConvertedFilter("example.com#@#foo[-abp-properties='something']bar", "example.com#@#foo:-abp-properties(something)bar");
-  checkConvertedFilter("example.com##[-abp-properties=\"something\"]", "example.com#?#:-abp-properties(something)");
-  checkConvertedFilter("example.com##[-abp-properties='(something)']", "example.com#?#:-abp-properties((something))");
-
-  test.done();
-};
-
 exports.testDomainRestrictions = function(test)
 {
   function testSelectorMatches(description, filters, domain, expectedMatches)

@@ -112,14 +112,6 @@ exports.testFromText = function(test)
     })(Filter.fromText(text));
   }
 
-  // conversion from old syntax.
-  withNAD(0, filter =>
-  {
-    test.equal(filter.text, "example.com#?#:-abp-properties(something)");
-    test.ok(filter instanceof ElemHideEmulationFilter);
-    test.equal(filter.type, "elemhideemulation");
-  })(Filter.fromText("example.com##[-abp-properties='something']"));
-
   test.done();
 };
 
@@ -403,13 +395,6 @@ exports.testElemHideRulesWithBraces = function(test)
     test.equal(filter.type, "elemhide");
     test.equal(filter.selector, "#foo\\7B color: red\\7D ");
   })(Filter.fromText("###foo{color: red}"));
-
-  // Filter conversion to the new syntax dealing with braces too.
-  withNAD(0, filter =>
-  {
-    test.equal(filter.type, "elemhideemulation");
-    test.equal(filter.selector, ":-abp-properties(/margin: [3-4]\\7B 2\\7D /)");
-  })(Filter.fromText("foo.com##[-abp-properties='/margin: [3-4]{2}/']"));
 
   test.done();
 };

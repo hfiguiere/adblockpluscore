@@ -106,22 +106,14 @@ Filter* Filter::FromText(DependentString& text)
     RegExpFilterData regexp;
     ElemHideData elemhide;
   } data;
-  bool needConversion = false;
   ParsedDomains parsedDomains;
   DependentString error;
 
   Filter::Type type = CommentFilter::Parse(text);
   if (type == Filter::Type::UNKNOWN)
-    type = ElemHideBase::Parse(text, error, data.elemhide, needConversion, parsedDomains);
+    type = ElemHideBase::Parse(text, error, data.elemhide, parsedDomains);
   if (type == Filter::Type::UNKNOWN)
     type = RegExpFilter::Parse(text, error, data.regexp);
-
-  if (needConversion)
-    text = ElemHideBase::ConvertFilter(text, data.elemhide.mSelectorStart);
-
-  // At that point we failed the conversion.
-  if (text.empty())
-    return nullptr;
 
   auto knownFilter = knownFilters.find(text);
   if (knownFilter)

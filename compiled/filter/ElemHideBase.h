@@ -65,8 +65,7 @@ public:
   explicit ElemHideBase(Type type, const String& text, const ElemHideData& data,
     const ParsedDomains& parsedDomains);
   static Type Parse(DependentString& text, DependentString& error,
-    ElemHideData& data, bool& needConversion, ParsedDomains& parsedDomains);
-  static DependentString ConvertFilter(String& text, String::size_type& at);
+    ElemHideData& data, ParsedDomains& parsedDomains);
 
   OwnedString BINDINGS_EXPORTED GetSelector() const;
   OwnedString BINDINGS_EXPORTED GetSelectorDomain() const;

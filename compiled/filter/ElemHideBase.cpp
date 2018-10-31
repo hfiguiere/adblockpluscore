@@ -52,18 +52,6 @@ namespace
 
     text.reset(text, 0, len - delta);
   }
-
-  static constexpr String::value_type ELEM_HIDE_DELIMITER[] = ABP_TEXT("##");
-  static constexpr String::size_type ELEM_HIDE_DELIMITER_LEN = str_length_of(ELEM_HIDE_DELIMITER);
-
-  static constexpr String::value_type ELEM_HIDE_EMULATION_DELIMITER[] = ABP_TEXT("#?#");
-  static constexpr String::size_type ELEM_HIDE_EMULATION_DELIMITER_LEN = str_length_of(ELEM_HIDE_EMULATION_DELIMITER);
-
-  static constexpr String::value_type OLD_PROPS_SELECTOR[] = ABP_TEXT("[-abp-properties=");
-  static constexpr String::size_type OLD_PROPS_SELECTOR_LEN = str_length_of(OLD_PROPS_SELECTOR);
-
-  static constexpr String::value_type PROPS_SELECTOR[] = ABP_TEXT(":-abp-properties(");
-  static constexpr String::size_type PROPS_SELECTOR_LEN = str_length_of(PROPS_SELECTOR);
 }
 
 ElemHideBase::ElemHideBase(Type type, const String& text, const ElemHideData& data, const ParsedDomains& parsedDomains)
@@ -74,11 +62,9 @@ ElemHideBase::ElemHideBase(Type type, const String& text, const ElemHideData& da
 }
 
 Filter::Type ElemHideBase::Parse(DependentString& text, DependentString& error,
-                                 ElemHideData& data, bool& needConversion,
+                                 ElemHideData& data,
                                  ParsedDomains& parsedDomains)
 {
-  needConversion = false;
-
   StringScanner scanner(text);
 
   // Domains part
@@ -140,14 +126,6 @@ Filter::Type ElemHideBase::Parse(DependentString& text, DependentString& error,
     error = ABP_TEXT("filter_invalid_domain"_str);
     return Type::INVALID;
   }
-  // We still need to check the old syntax. It will be converted when
-  // we instantiate the filter.
-  if (!emulation &&
-      text.find(OLD_PROPS_SELECTOR, data.mSelectorStart, OLD_PROPS_SELECTOR_LEN) != text.npos)
-  {
-    needConversion = true;
-    emulation = !exception;
-  }
 
   if (exception)
     return Type::ELEMHIDEEXCEPTION;
@@ -156,128 +134,6 @@ Filter::Type ElemHideBase::Parse(DependentString& text, DependentString& error,
     return Type::ELEMHIDEEMULATION;
 
   return Type::ELEMHIDE;
-}
-
-namespace
-{
-  struct Range
-  {
-    String::size_type start;
-    String::size_type end;
-    String::size_type len() const
-    {
-        return end - start;
-    }
-    String::size_type byte_len() const
-    {
-      return len() * sizeof(String::value_type);
-    }
-  };
-}
-
-// Convert filter from the old syntax to the new.
-DependentString ElemHideBase::ConvertFilter(String& text, String::size_type& at)
-{
-  Range prefix = {at, text.find(OLD_PROPS_SELECTOR, at, OLD_PROPS_SELECTOR_LEN)};
-  if (prefix.end == text.npos)
-    return DependentString(text);
-
-  auto length = text.length();
-  Range suffix = {at, length};
-  Range properties = { prefix.end + OLD_PROPS_SELECTOR_LEN, 0 };
-  String::value_type quote = 0;
-  for (auto index = properties.start;
-       index < length && (suffix.start == at); index++)
-  {
-    auto c = text[index];
-    switch (c)
-    {
-    case ABP_TEXT('"'):
-    case ABP_TEXT('\''):
-      if (quote == 0)
-      {
-        // syntax error: we already have a quoted section.
-        if (properties.end)
-          return DependentString();
-
-        if (properties.start != index)
-          return DependentString();
-
-        quote = c;
-        properties.start = index + 1;
-      }
-      else if (quote == c)
-      {
-        // end of quoted.
-        quote = 0;
-        properties.end = index;
-      }
-      break;
-    case ABP_TEXT(']'):
-      if (quote == 0)
-      {
-        if (properties.end == 0)
-          return DependentString();
-        if (properties.end + 1 != index)
-          return DependentString();
-        suffix.start = index + 1;
-      }
-      break;
-    default:
-      break;
-    }
-  }
-
-  if (suffix.start == at)
-    return DependentString();
-
-  String::size_type delimiter = text.find(ELEM_HIDE_DELIMITER, 0,
-                                          ELEM_HIDE_DELIMITER_LEN);
-  // +1 for the replacement of "##" by "#?#"
-  if (delimiter != text.npos)
-    at++;
-  auto new_len = at + prefix.len() + PROPS_SELECTOR_LEN + properties.len() + 1 /* ) */ + suffix.len();
-
-  assert2(length == new_len + (delimiter == text.npos ? 2 : 1), ABP_TEXT("Inconsistent length in filter conversion."_str));
-
-  DependentString converted(text, 0, new_len);
-
-  if (suffix.len())
-  {
-    new_len -= suffix.len();
-    std::memmove(converted.data() + new_len,
-                 text.data() + suffix.start,
-                 suffix.byte_len());
-  }
-  new_len--;
-  // here we need to move the properties before inserting the ')'
-  auto parens = new_len;
-  if (properties.len())
-  {
-    new_len -= properties.len();
-    std::memmove(converted.data() + new_len,
-                 text.data() + properties.start, properties.byte_len());
-  }
-  converted[parens] = ABP_TEXT(')');
-
-  new_len -= PROPS_SELECTOR_LEN;
-  std::memcpy(converted.data() + new_len,
-              PROPS_SELECTOR,
-              PROPS_SELECTOR_LEN * sizeof(String::value_type));
-  if (prefix.len())
-  {
-    new_len -= prefix.len();
-    std::memmove(converted.data() + new_len,
-                 text.data() + prefix.start, prefix.byte_len());
-  }
-
-  if (delimiter != String::npos)
-  {
-    std::memcpy(converted.data() + delimiter, ELEM_HIDE_EMULATION_DELIMITER,
-                ELEM_HIDE_EMULATION_DELIMITER_LEN * sizeof(String::value_type));
-  }
-
-  return converted;
 }
 
 namespace
